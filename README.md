@@ -69,7 +69,7 @@ confirmation.
 Due to `sbt`'s design, multi-module project can only be defined in `project/xxxBuild.scala`. Here, we use these settings:
 
 ```scala
-import com.no2.MavenBuild
+import com.no2.sbtmaven.MavenBuild
 
 object MyBuild extends MavenBuild {
 	// "*" is a selector which selects all sub modules
