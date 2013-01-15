@@ -74,8 +74,9 @@ import com.no2.sbtmaven.MavenBuild
 object MyBuild extends MavenBuild {
 	// "*" is a selector which selects all sub modules
 	project("*")(
-		// Note that these properties like compile source, target, encoding are treated as common properties
-		// So set a pom.xml property like "<maven.compiler.source>1.6</maven.compiler.source>" also works.
+		// Note that these properties like compile source, target, encoding 
+		// are treated as common properties. So set a pom.xml property 
+		// like "<maven.compiler.source>1.6</maven.compiler.source>" also works.
 		javacOptions ++= Seq("-source", "1.6")
 	)
 
@@ -88,7 +89,6 @@ object MyBuild extends MavenBuild {
 		assemblySettings ++ Seq(
       		test in assembly := {}
       	)
-		// Finally convert it to a Setting[_]*
-	:_*)
+	:_*) // Finally convert it to a Setting[_]*
 }
 ```
