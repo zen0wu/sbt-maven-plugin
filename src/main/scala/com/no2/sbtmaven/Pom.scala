@@ -29,20 +29,29 @@ class Pom(val baseDir: String, val pomFile: String = "pom.xml", val parent: Opti
       SuperPom.projectXml(this)
     )
 
+  // Basic info
   val groupId: String = getInheritedProperty(xml, "groupId", _.groupId)
   val artifactId: String = getInheritedProperty(xml, "artifactId", _.artifactId)
   val ver: String = getInheritedProperty(xml, "version", _.ver)
 
+  // Dependencies
   val dependencies = 
     new DependencySet(xml \ "dependencies" \ "dependency" map ( n => parseDependency(n, parent) ))
   val dependencyManagement: DependencySet = 
     new DependencySet(xml \ "dependencyManagement" \ "dependency" map ( n => parseDependency(n, None) ))
 
+  // Repositories
+  val repositories: Seq[(String, String)] = 
+    (xml \ "repositories" \ "repository") map (n => (n \ "id" text, n \ "url" text))
+
+  // Scala version
   val scalaVer = dependencies.lookup(Common.scalaLibraryGroupId, Common.scalaLibraryArtifactId).map(_.version)
 
+  // Modules
   val modules: Seq[Pom] = 
     xml \ "modules" \ "module" map { p: NodeSeq => new Pom(baseDir = p text, parent = Some(self)) }
 
+  // SBT Models
   lazy val root: Pom = if (parent == None) self else parent.get.root
   lazy val allModules: List[Pom] = self :: modules.toList.flatMap(_.allModules)
   lazy val allProjects: List[Project] = project :: subProjects
@@ -59,6 +68,7 @@ class Pom(val baseDir: String, val pomFile: String = "pom.xml", val parent: Opti
     }
 
     val metadata: Seq[Setting[_]] = Common.commonProjectSettings ++ 
+      scalaVer.map(scalaVersion := _).toList ++
       Seq(
         name := artifactId,
         organization := groupId,
@@ -68,8 +78,7 @@ class Pom(val baseDir: String, val pomFile: String = "pom.xml", val parent: Opti
           if (rv == None) opts
           else kv._1 :: rv.get :: opts
         }
-      ) ++
-      scalaVer.map(scalaVersion := _).toList
+      )
 
     val bare = Project(
       id = artifactId, 
@@ -78,7 +87,8 @@ class Pom(val baseDir: String, val pomFile: String = "pom.xml", val parent: Opti
     val withSubprojs = (bare /: subProjects) (_ aggregate _)
     val withInterDeps = (withSubprojs /: indeps) (_ dependsOn _)
     withInterDeps.settings(
-      libraryDependencies ++= exdeps map (_.toDependency)
+      libraryDependencies ++= exdeps map (_.toDependency),
+      resolvers ++= repositories.map(r => r._1 at r._2)
     )
   }
 

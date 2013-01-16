@@ -57,12 +57,12 @@ object Plugins extends Build {
 __See the configuration section above? Do that, and done.__ Just make sure there's a `pom.xml` in your current folder.
 
 I made a selfish assumption that if you're using this plugin, you will assure that `pom.xml` is at the same 
-folder with `project` or `build.sbt`. So, I wrote this plugin so that minimal effort is needed for users. 
+folder with `project` or `build.sbt`. So, this plugin is designed that minimal effort is needed for users. 
 
 This is achieved by override the `settings` field in `Plugin` trait and this settings will be add to all projects' settings automatically, 
 which is not the best practise. Ideally, I should provide an option for the user to choose whether to do this, but haven't figure out a way.
-For now, I just `guess`. If there exists modules definition in `pom.xml`, then it's a multi-module project. Otherwise, I'll do that without
-confirmation.
+For now, I just `guess`. If there exists modules definition in `pom.xml`, then it's a multi-module project. Otherwise, It'll import
+"./pom.xml" without confirmation.
 
 ### Multi module project
 
