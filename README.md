@@ -21,6 +21,9 @@ project definition changes, but with Maven, it's just a fast update.
 By using this plugin, you can just update your dependencies(or whatever) in `pom.xml`, and `reload` on your SBT console.
 Cool!
 
+This plugin also enables seamless migration from Maven to SBT, you don't have to rewrite your dependencies and all crap
+in SBT, just use it!
+
 Features
 --------
 

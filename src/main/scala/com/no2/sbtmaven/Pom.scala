@@ -79,7 +79,6 @@ class Pom(val baseDir: String, val pomFile: String = "pom.xml", val parent: Opti
     val pomextra = 0
 
     val metadata: Seq[Setting[_]] = Common.projectSettings ++ 
-      scalaVer.map(scalaVersion := _).toList ++
       Seq(
         name := artifactId,
         organization := groupId,
@@ -91,11 +90,13 @@ class Pom(val baseDir: String, val pomFile: String = "pom.xml", val parent: Opti
           val rv = properties apply kv._2
           if (rv == None) opts
           else kv._1 :: rv.get :: opts
-        }
+        },
+        pomExtra := pomextra
       ) ++ 
       (Seq( // Optional metadata
         startYear := (xml \ "inceptionYear").headOption.map(_.text).map(_.toInt),
-        homepage := (xml \ "url").headOption.map(_.text).map(new java.net.URL(_))
+        homepage := (xml \ "url").headOption.map(_.text).map(new java.net.URL(_)),
+        scalaVer.map(scalaVersion := _)
       ).flatten)
       
     val bare = Project(
