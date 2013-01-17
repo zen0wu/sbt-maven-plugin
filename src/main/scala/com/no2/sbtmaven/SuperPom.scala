@@ -1,4 +1,4 @@
-package com.no2.sbtmaven
+package com.not2.sbtmaven
 
 import scala.xml._
 
@@ -30,7 +30,6 @@ object SuperPom {
       .replace("${project.build.directory}", pom.baseDir)
       .replace("${project.artifactId}", pom.artifactId)
       .replace("${project.version}", pom.ver)
-    println("project xml from super pom: " + xmlStr)
     XML loadString xmlStr
   }
 }

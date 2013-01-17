@@ -1,20 +1,24 @@
-package com.no2.sbtmaven
+package com.not2.sbtmaven
 
 import sbt._
 import Keys._
 
 object Common {
-  val commonProjectSettings: Seq[Setting[_]] = Seq(
+  val projectSettings: Seq[Setting[_]] = Seq(
     autoScalaLibrary := false,
     resolvers ++= MavenSettings.resolvers
   )
 
-  val commonJavacOptions = Seq(
-    "-source" -> "maven.compiler.source",  // javac -source
-    "-target" -> "maven.compiler.target",  // javac -target
-    "-encoding" -> "encoding" // java -Dfile.encoding
+  val publishSettings: Seq[Setting[_]] = Seq(
+    publishMavenStyle := true,
+    publishArtifact in Test := false
   )
 
-  val scalaLibraryGroupId = "org.scala-lang"
-  val scalaLibraryArtifactId = "scala-library"
+  val javacOptions = Seq(
+    "-source" -> "maven.compiler.source",  // javac -source
+    "-target" -> "maven.compiler.target",  // javac -target
+    "-encoding" -> "encoding"              // java -Dfile.encoding
+  )
+
+  val scalaLibrary = ("org.scala-lang", "scala-library")
 }

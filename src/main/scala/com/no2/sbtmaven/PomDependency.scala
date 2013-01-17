@@ -1,4 +1,4 @@
-package com.no2.sbtmaven
+package com.not2.sbtmaven
 
 import sbt._
 
@@ -32,4 +32,7 @@ class DependencySet(val list: Seq[PomDependency]) {
 
   def lookup(groupId: String, name: String): Option[PomDependency] = 
     gnMap.get(groupId + ":" + name)
+
+  def lookup(id: (String, String)): Option[PomDependency] =
+    lookup(id._1, id._2)
 }

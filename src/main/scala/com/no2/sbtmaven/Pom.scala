@@ -1,4 +1,4 @@
-package com.no2.sbtmaven
+package com.not2.sbtmaven
 
 import java.io.File
 import xml._
@@ -44,8 +44,17 @@ class Pom(val baseDir: String, val pomFile: String = "pom.xml", val parent: Opti
   val repositories: Seq[(String, String)] = 
     (xml \ "repositories" \ "repository") map (n => (n \ "id" text, n \ "url" text))
 
+  // Metadata
+  val licenseInfo = xml \ "licenses" \ "license" map (p => (p \ "name" text) -> new java.net.URL(p \ "url" text))
+  val organizationInfo = xml \ "organization"
+  val pomextra = xml \ "developers" ++
+    xml \ "contributors" ++
+    xml \ "issueManagement" ++
+    xml \ "mailingLists" ++
+    xml \ "scm"
+
   // Scala version
-  val scalaVer = dependencies.lookup(Common.scalaLibraryGroupId, Common.scalaLibraryArtifactId).map(_.version)
+  val scalaVer = dependencies.lookup(Common.scalaLibrary).map(_.version)
 
   // Modules
   val modules: Seq[Pom] = 
@@ -67,19 +76,28 @@ class Pom(val baseDir: String, val pomFile: String = "pom.xml", val parent: Opti
       )
     }
 
-    val metadata: Seq[Setting[_]] = Common.commonProjectSettings ++ 
+    val pomextra = 0
+
+    val metadata: Seq[Setting[_]] = Common.projectSettings ++ 
       scalaVer.map(scalaVersion := _).toList ++
       Seq(
         name := artifactId,
         organization := groupId,
         version := ver,
-        javacOptions ++= Common.commonJavacOptions.foldLeft(List[String]()) { (opts: List[String], kv: (String, String)) =>
+        description := (xml \ "description").headOption.map(_.text).getOrElse(artifactId),
+        organizationHomepage := (organizationInfo \ "url").headOption.map(_.text).map(new java.net.URL(_)),
+        licenses := licenseInfo,
+        javacOptions ++= Common.javacOptions.foldLeft(List[String]()) { (opts: List[String], kv: (String, String)) =>
           val rv = properties apply kv._2
           if (rv == None) opts
           else kv._1 :: rv.get :: opts
         }
-      )
-
+      ) ++ 
+      (Seq( // Optional metadata
+        startYear := (xml \ "inceptionYear").headOption.map(_.text).map(_.toInt),
+        homepage := (xml \ "url").headOption.map(_.text).map(new java.net.URL(_))
+      ).flatten)
+      
     val bare = Project(
       id = artifactId, 
       base = new File(baseDir)
