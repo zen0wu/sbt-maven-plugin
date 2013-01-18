@@ -6,27 +6,28 @@ import xml._
 import sbt._
 import Keys._
 
+import property.PomProperty
+
 class Pom(val baseDir: String, val pomFile: String = "pom.xml", val parent: Option[Pom] = None) { self =>
   require(new File(baseDir + "/" + pomFile).exists, baseDir + "/" + pomFile + " doesn't exist")
 
   val xml = XML.loadFile(baseDir + "/" + pomFile) \\ "project"
 
-  // There's a little trick here
-  // There're cyclic dependencies between properties and (groupId, ver)
-  // It happens because super pom needs version and groupId's value
-  // But, we only need super pom when ran into ${project.xxx}, 
-  // so super pom can be obtained lazily
-  // We use a by-name parameter here to avoid NullPointerException
   val properties: PomProperty =
-    new PomProperty({
+    new PomProperty(
+      { // Property tags
         val x = xml \ "properties" headOption;
         if (x == None) Map()
         else Map() ++ 
           x.get.child.map(p => p.label -> p.text)
             .filterNot(_._1 == "#PCDATA")
       },
+      // Super project properties,
       parent.map(_.properties),
-      SuperPom.projectXml(this)
+      // This pom.xml project properties
+      xml,
+      // Super pom properties
+      SuperPom.projectXml(baseDir)
     )
 
   // Basic info
@@ -58,7 +59,7 @@ class Pom(val baseDir: String, val pomFile: String = "pom.xml", val parent: Opti
 
   // Modules
   val modules: Seq[Pom] = 
-    xml \ "modules" \ "module" map { p: NodeSeq => new Pom(baseDir = p text, parent = Some(self)) }
+    xml \ "modules" \ "module" map { p: NodeSeq => new Pom(baseDir = baseDir + "/" + (p text), parent = Some(self)) }
 
   // SBT Models
   lazy val root: Pom = if (parent == None) self else parent.get.root
