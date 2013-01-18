@@ -1,4 +1,4 @@
-package com.not2.sbtmaven
+package com.nil2.sbtmaven
 
 import java.io.File
 import xml._

@@ -72,7 +72,7 @@ For now, I just `guess`. If there exists modules definition in `pom.xml`, then i
 Due to `sbt`'s design, multi-module project can only be defined in `project/xxxBuild.scala`. Here, we use these settings:
 
 ```scala
-import com.not2.sbtmaven.MavenBuild
+import com.nil2.sbtmaven.MavenBuild
 
 object MyBuild extends MavenBuild {
 	// "*" is a selector which selects all sub modules
