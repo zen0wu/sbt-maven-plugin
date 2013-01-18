@@ -39,7 +39,7 @@ class Pom(val baseDir: String, val pomFile: String = "pom.xml", val parent: Opti
   val dependencies = 
     new DependencySet(xml \ "dependencies" \ "dependency" map ( n => parseDependency(n, parent) ))
   val dependencyManagement: DependencySet = 
-    new DependencySet(xml \ "dependencyManagement" \ "dependency" map ( n => parseDependency(n, None) ))
+    new DependencySet(xml \ "dependencyManagement" \ "dependencies" \ "dependency" map ( n => parseDependency(n, None) ))
 
   // Repositories
   val repositories: Seq[(String, String)] = 
@@ -126,7 +126,7 @@ class Pom(val baseDir: String, val pomFile: String = "pom.xml", val parent: Opti
 
     val fallback: Option[PomDependency] = parent flatMap{ _.dependencyManagement.lookup(groupId, name) }
     val version = (node \ "version").headOption.map(_.text).map(properties resolve _).orElse(fallback.map(_.version))
-    require(version != None, "version is empty, although with parent's dependency management")
+    require(version != None, "version is empty, even with parent's dependency management")
     val scope = (node \ "scope").headOption.map(_.text).map(properties resolve _).orElse(fallback.map(_.version))
     val classifier = (node \ "classifier").map(_.text).toList
     new PomDependency(groupId, name, version.get, scope, classifier)
