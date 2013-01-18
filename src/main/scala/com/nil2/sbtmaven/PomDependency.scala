@@ -17,13 +17,16 @@ class PomDependency(
       else groupId % name % version % scope.get
     (d /: classifier)((d, clf) => d classifier clf)
   }
+
+  override def toString = id + ":" + version
 }
 
 class DependencySet(val list: Seq[PomDependency]) {
   private val gnMap: Map[String, PomDependency] = 
     list.groupBy(_.id)
       .mapValues{ ds: Seq[PomDependency] => 
-        require(ds.length == 1, "Each dependency should have unique groupId:artifactId")
+        // TODO: Lack of dependency type support
+//        require(ds.length == 1, "Each dependency should have unique id " + ds.mkString("  "))
         ds.head
       }
 

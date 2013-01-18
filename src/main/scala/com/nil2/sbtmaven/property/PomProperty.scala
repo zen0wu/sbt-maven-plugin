@@ -25,9 +25,9 @@ class PomProperty(
   }
 
   private val KeyPrefix = """([A-z]+\.)(.*)""".r
-  private val pomResolv = new XmlPropertyResolver(pom)
-  private val superPomResolv = new XmlPropertyResolver(superPom)
-  private val mavenSettingResolv = MavenSettings.settingsXml.map(new XmlPropertyResolver(_))
+  val pomResolv = new XmlPropertyResolver(pom)
+  val superPomResolv = new XmlPropertyResolver(superPom)
+  val mavenSettingResolv = MavenSettings.settingsXml.map(new XmlPropertyResolver(_))
   private def resolvePredef(s: String): Option[String] = {
     s match {
       case KeyPrefix("settings.", key) => mavenSettingResolv.flatMap(_ apply key)

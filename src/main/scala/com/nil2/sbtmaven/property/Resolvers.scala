@@ -1,7 +1,7 @@
 package com.nil2.sbtmaven.property
 
 object ResolveUtil {
-  private val KeyPattern = """\$\{([A-z\.]+)\}""".r
+  private val KeyPattern = """\$\{([A-z0-9\.]+)\}""".r
 
   def deepResolve(resolvers: (String => Option[String])*)(s: String): String = {
     def findAllKeys(s: String): List[String] = {

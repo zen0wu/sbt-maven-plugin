@@ -30,6 +30,9 @@ class Pom(val baseDir: String, val pomFile: String = "pom.xml", val parent: Opti
       SuperPom.projectXml(baseDir)
     )
 
+  // Object methods
+  override def toString = "Pom(" + baseDir + "/" + pomFile + ")"
+
   // Basic info
   val groupId: String = getInheritedProperty(xml, "groupId", _.groupId)
   val artifactId: String = getInheritedProperty(xml, "artifactId", _.artifactId)
