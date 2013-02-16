@@ -6,7 +6,8 @@ import Keys._
 object Common {
   val projectSettings: Seq[Setting[_]] = Seq(
     autoScalaLibrary := false,
-    resolvers ++= MavenSettings.resolvers
+    resolvers ++= MavenSettings.resolvers,
+    credentials ++= MavenSettings.credentials
   )
 
   val publishSettings: Seq[Setting[_]] = Seq(
