@@ -7,7 +7,9 @@ class PomDependency(
   val name: String, 
   val version: String, 
   val scope: Option[String] = None,
-  val classifier: Seq[String] = Nil
+  val classifier: Seq[String] = Nil,
+  val exclusions: Seq[(String, String)] = Nil
+
 ) {
   def id = groupId + ":" + name
 
@@ -15,7 +17,10 @@ class PomDependency(
     val d = 
       if (scope == None) groupId % name % version
       else groupId % name % version % scope.get
-    (d /: classifier)((d, clf) => d classifier clf)
+    val classified = (d /: classifier)((d, clf) => d classifier clf)
+    (classified /: exclusions){
+      case (dep, (exOrg, exName)) => dep.exclude(exOrg, exName)
+    }
   }
 
   override def toString = id + ":" + version
