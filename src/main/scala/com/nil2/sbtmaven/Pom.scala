@@ -130,8 +130,15 @@ class Pom(val baseDir: String, val pomFile: String = "pom.xml", val parent: Opti
     val fallback: Option[PomDependency] = parent flatMap{ _.dependencyManagement.lookup(groupId, name) }
     val version = (node \ "version").headOption.map(_.text).map(properties resolve _).orElse(fallback.map(_.version))
     require(version != None, "version is empty, even with parent's dependency management")
-    val scope = (node \ "scope").headOption.map(_.text).map(properties resolve _).orElse(fallback.map(_.version))
+    val scope = (node \ "scope").headOption.map(_.text).map(properties resolve _).orElse(fallback.flatMap(_.scope))
     val classifier = (node \ "classifier").map(_.text).toList
-    new PomDependency(groupId, name, version.get, scope, classifier)
+    val exclusions = (node \ "exclusions" \ "exclusion").map{ex =>
+      ((ex \ "groupId").text, (ex \ "artifactId").text)
+    } match {
+      case Nil => fallback.map(_.exclusions).getOrElse(Nil)
+      case exs => exs
+    }
+
+    new PomDependency(groupId, name, version.get, scope, classifier, exclusions)
   }
 }
