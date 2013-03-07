@@ -62,10 +62,10 @@ __See the configuration section above? Do that, and done.__ Just make sure there
 I made a selfish assumption that if you're using this plugin, you will assure that `pom.xml` is at the same 
 folder with `project` or `build.sbt`. So, this plugin is designed that minimal effort is needed for users. 
 
-This is achieved by override the `settings` field in `Plugin` trait and this settings will be add to all projects' settings automatically, 
-which is not the best practise. Ideally, I should provide an option for the user to choose whether to do this, but haven't figure out a way.
-For now, I just `guess`. If there exists modules definition in `pom.xml`, then it's a multi-module project. Otherwise, It'll import
-"./pom.xml" without confirmation.
+This is achieved by override the `settings` field in `Plugin` trait and this settings will be add to all projects' settings automatically.
+
+This default behavior will be disabled **only when** there is module definition in `pom.xml` 
+or any `MavenBuild` is instantiated from `.scala` build definition. (Here we took the advantages of `.scala` def is executed before importing `.sbt` def)
 
 ### Multi module project
 

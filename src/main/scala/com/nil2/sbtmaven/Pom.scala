@@ -41,6 +41,7 @@ class Pom(val baseDir: String, val pomFile: String = "pom.xml", val parent: Opti
   // Dependencies
   val dependencies = 
     new DependencySet(xml \ "dependencies" \ "dependency" map ( n => parseDependency(n, parent) ))
+
   val dependencyManagement: DependencySet = 
     new DependencySet(xml \ "dependencyManagement" \ "dependencies" \ "dependency" map ( n => parseDependency(n, None) ))
 

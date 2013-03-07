@@ -6,14 +6,21 @@ import Keys._
 /*
 TODO:
 - build paths settings(scalaSource in Compile := file(""), or <<= )
-- project metadata(devloperers, website...)
-- project publishing(to maven, to ivy)
-- dependency exclude
 - logging
 */
 
 abstract class MavenBuild extends PomBuild with SelectorDSL with GlobFactory with OrFactory {
+	MavenBuild.instantiate
+
   implicit def stringToSelector(s: String) = produce(s)
+}
+
+object MavenBuild {
+	private var instantiated = false
+
+	private[MavenBuild] def instantiate { instantiated = true }
+
+	def isInstantiated = instantiated
 }
 
 trait PomBuild extends Build {

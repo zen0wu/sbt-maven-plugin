@@ -43,4 +43,6 @@ class DependencySet(val list: Seq[PomDependency]) {
 
   def lookup(id: (String, String)): Option[PomDependency] =
     lookup(id._1, id._2)
+
+  def values = gnMap.values
 }

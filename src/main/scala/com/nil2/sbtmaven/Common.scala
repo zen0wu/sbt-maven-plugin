@@ -6,7 +6,11 @@ import Keys._
 object Common {
   val projectSettings: Seq[Setting[_]] = Seq(
     resolvers ++= MavenSettings.resolvers,
-    credentials ++= MavenSettings.credentials
+    credentials ++= MavenSettings.credentials,
+    
+    // Disable scala library since it's the default behavior of maven
+    // scala-library will be added to libraryDependencies if it's declared as dependency in pom.xml
+    autoScalaLibrary := false
   )
 
   val publishSettings: Seq[Setting[_]] = Seq(
