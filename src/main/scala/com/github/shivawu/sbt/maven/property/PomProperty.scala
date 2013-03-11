@@ -1,7 +1,7 @@
-package com.nil2.sbtmaven.property
+package com.github.shivawu.sbt.maven.property
 
 import scala.xml._
-import com.nil2.sbtmaven.MavenSettings
+import com.github.shivawu.sbt.maven.MavenSettings
 
 class PomProperty(
   kvs: Map[String, String], 

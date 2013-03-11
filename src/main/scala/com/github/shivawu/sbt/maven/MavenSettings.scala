@@ -1,4 +1,4 @@
-package com.nil2.sbtmaven
+package com.github.shivawu.sbt.maven
 
 import java.io.File
 import xml._
@@ -10,7 +10,7 @@ object MavenSettings {
     val file = sys.props("user.home") + "/.m2/settings.xml"
     if (new File(file).exists()) {
       ConsoleLogger().info("Loading maven settings from " + file)
-      XML.loadFile(file) \\ "settings" headOption
+      (XML.loadFile(file) \\ "settings").headOption
     }
     else None
   }
@@ -26,12 +26,12 @@ object MavenSettings {
    * doesn't work
    */
   private def resolveLocalRepository(settings: NodeSeq): Seq[Resolver] =
-    settings.flatMap(_ \ "localRepository" headOption)
+    settings.flatMap(n => (n \ "localRepository").headOption)
       .map(_.text)
       .map(repo => "maven-local" at new File(repo).toURI.toString)
   private def resolveMirrors(settings: NodeSeq): Seq[Resolver] =
     settings.flatMap(_ \ "mirrors" \ "mirror")
-      .map(n => (n \ "id" text, n \ "url" text))
+      .map(n => ((n \ "id").text, (n \ "url").text))
       .map { case (id, url) => id at url }
 
   lazy val resolvers: Seq[Resolver] = Seq(

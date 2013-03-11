@@ -1,4 +1,4 @@
-package com.nil2.sbtmaven
+package com.github.shivawu.sbt.maven
 
 import scala.xml._
 

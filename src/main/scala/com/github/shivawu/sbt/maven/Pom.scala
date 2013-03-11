@@ -1,4 +1,4 @@
-package com.nil2.sbtmaven
+package com.github.shivawu.sbt.maven
 
 import java.io.File
 import xml._
@@ -17,7 +17,7 @@ class Pom(val baseDir: String, val pomFile: String = "pom.xml", val parent: Opti
   val properties: PomProperty =
     new PomProperty(
       { // Property tags
-        val x = xml \ "properties" headOption;
+        val x = (xml \ "properties").headOption
         if (x == None) Map()
         else Map() ++ 
           x.get.child.map(p => p.label -> p.text)
@@ -48,10 +48,10 @@ class Pom(val baseDir: String, val pomFile: String = "pom.xml", val parent: Opti
 
   // Repositories
   val repositories: Seq[(String, String)] = 
-    (xml \ "repositories" \ "repository") map (n => (n \ "id" text, n \ "url" text))
+    (xml \ "repositories" \ "repository") map (n => ((n \ "id").text, (n \ "url").text))
 
   // Metadata
-  val licenseInfo = xml \ "licenses" \ "license" map (p => (p \ "name" text) -> new java.net.URL(p \ "url" text))
+  val licenseInfo = (xml \ "licenses" \ "license").map (p => ((p \ "name").text) -> new java.net.URL((p \ "url").text))
   val organizationInfo = xml \ "organization"
   val pomextra = xml \ "developers" ++
     xml \ "contributors" ++
@@ -64,7 +64,7 @@ class Pom(val baseDir: String, val pomFile: String = "pom.xml", val parent: Opti
 
   // Modules
   val modules: Seq[Pom] = 
-    xml \ "modules" \ "module" map { p: NodeSeq => new Pom(baseDir = baseDir + "/" + (p text), parent = Some(self)) }
+    xml \ "modules" \ "module" map { p: NodeSeq => new Pom(baseDir = baseDir + "/" + p.text, parent = Some(self)) }
 
   // SBT Models
   lazy val root: Pom = if (parent == None) self else parent.get.root
@@ -80,7 +80,7 @@ class Pom(val baseDir: String, val pomFile: String = "pom.xml", val parent: Opti
       val set = new DependencySet(depPoms.map(p => dependencies.lookup(p.groupId, p.artifactId)).flatten)
       (
         depPoms.map(_.project),
-        dependencies.list.filter{ p => set.lookup(p) == None }
+        dependencies.list.filter{ p => set.lookup(p) == None }.toList
       )
     }
 
@@ -125,8 +125,8 @@ class Pom(val baseDir: String, val pomFile: String = "pom.xml", val parent: Opti
 
   protected def parseDependency(node: NodeSeq, parent: Option[Pom]): PomDependency = {
     val (groupId, name) = (
-      properties.resolve(node \ "groupId" text),
-      properties.resolve(node \ "artifactId" text)
+      properties.resolve((node \ "groupId").text),
+      properties.resolve((node \ "artifactId").text)
     )
     require(groupId != "", "groupId is empty")
     require(name != "", "artifactId is empty")
