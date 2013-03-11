@@ -6,7 +6,6 @@ import Keys._
 /*
 TODO:
 - build paths settings(scalaSource in Compile := file(""), or <<= )
-- logging
 */
 
 abstract class MavenBuild extends PomBuild with SelectorDSL with GlobFactory with OrFactory {

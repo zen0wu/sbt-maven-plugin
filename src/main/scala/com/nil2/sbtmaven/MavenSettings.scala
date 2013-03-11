@@ -8,7 +8,10 @@ import java.net.URL
 object MavenSettings {
   val settingsXml: Option[NodeSeq] = {
     val file = sys.props("user.home") + "/.m2/settings.xml"
-    if (new File(file).exists()) XML.loadFile(file) \\ "settings" headOption
+    if (new File(file).exists()) {
+      ConsoleLogger().info("Loading maven settings from " + file)
+      XML.loadFile(file) \\ "settings" headOption
+    }
     else None
   }
 
@@ -48,6 +51,4 @@ object MavenSettings {
         Credentials(name, new URL(url).getHost, user, pw)
       }
     }
-
-
 }

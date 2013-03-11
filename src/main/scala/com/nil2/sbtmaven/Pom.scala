@@ -11,6 +11,7 @@ import property.PomProperty
 class Pom(val baseDir: String, val pomFile: String = "pom.xml", val parent: Option[Pom] = None) { self =>
   require(new File(baseDir + "/" + pomFile).exists, baseDir + "/" + pomFile + " doesn't exist")
 
+  ConsoleLogger().info("Loading [" + (baseDir + "/" + pomFile) + "]")
   val xml = XML.loadFile(baseDir + "/" + pomFile) \\ "project"
 
   val properties: PomProperty =
@@ -72,6 +73,8 @@ class Pom(val baseDir: String, val pomFile: String = "pom.xml", val parent: Opti
   lazy val subProjects: List[Project] = modules.toList.flatMap(_.allProjects)
 
   lazy val project: Project = {
+    ConsoleLogger().debug("Converting pom.xml to SBT project")
+
     val (indeps, exdeps): (List[Project], List[PomDependency]) = {
       val depPoms = root.allModules.filter(p => dependencies.lookup(p.groupId, p.artifactId) != None)
       val set = new DependencySet(depPoms.map(p => dependencies.lookup(p.groupId, p.artifactId)).flatten)
