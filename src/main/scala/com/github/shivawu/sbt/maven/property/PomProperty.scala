@@ -2,6 +2,7 @@ package com.github.shivawu.sbt.maven.property
 
 import scala.xml._
 import com.github.shivawu.sbt.maven.MavenSettings
+import sbt._
 
 class PomProperty(
   kvs: Map[String, String], 
@@ -15,11 +16,11 @@ class PomProperty(
     parent.map(_.apply _),
     Some(resolvePredef _)
   ).flatten
-  private val mainResolver: (String => String) = ResolveUtil.deepResolve(resolvers:_*) _
+  private val mainResolver: (String => String) = ResolveUtil.deepResolve(resolvers:_*)
   def resolve(s: String): String = mainResolver(s)
 
   def apply(key: String): Option[String] = {
-    val value = mainResolver("${" + key + "}")
+    val value = resolve("${" + key + "}")
     if (value startsWith "${") None
     else Some(value)
   }

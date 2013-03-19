@@ -3,22 +3,23 @@ package com.github.shivawu.sbt.maven.property
 object ResolveUtil {
   private val KeyPattern = """\$\{([A-z0-9\.-]+)\}""".r
 
-  def deepResolve(resolvers: (String => Option[String])*)(s: String): String = {
-    def findAllKeys(s: String): List[String] = {
-      val iter = KeyPattern.findAllIn(s)
-      val res = collection.mutable.ListBuffer[String]()
-      while (iter.hasNext) { 
-        iter.next
-        val s = iter.group(1)
-        val be = iter.before
-        // escape $$
-        // Note: Scala 2.10.0 has a findAllMatchesIn method, which suits here perfectly.
-        // But we cannot use it, since 2.10.0 just released.
-        if (be.length == 0 || be.charAt(be.length - 1) != '$') 
-          res += s
-      }
-      res.toList
+  def findAllKeys(s: String): List[String] = {
+    val iter = KeyPattern.findAllIn(s)
+    val res = collection.mutable.ListBuffer[String]()
+    while (iter.hasNext) { 
+      iter.next
+      val s = iter.group(1)
+      val be = iter.before
+      // escape $$
+      // Note: Scala 2.10.0 has a findAllMatchesIn method, which suits here perfectly.
+      // But we cannot use it, since 2.10.0 just released.
+      if (be.length == 0 || be.charAt(be.length - 1) != '$') 
+        res += s
     }
+    res.toList
+  }
+
+  def deepResolve(resolvers: (String => Option[String])*)(s: String): String = {
 
     def rec(s: String, stk: Set[String]): String = {
       val keys = findAllKeys(s)

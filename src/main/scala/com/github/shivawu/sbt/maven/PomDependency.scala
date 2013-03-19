@@ -27,13 +27,10 @@ class PomDependency(
 }
 
 class DependencySet(val list: Seq[PomDependency]) {
-  private val gnMap: Map[String, PomDependency] = 
-    list.groupBy(_.id)
-      .mapValues{ ds: Seq[PomDependency] => 
-        // TODO: Lack of dependency type support
-//        require(ds.length == 1, "Each dependency should have unique id " + ds.mkString("  "))
-        ds.head
-      }
+  import collection._
+
+  private val gnMap = 
+    mutable.Map[String, PomDependency]() ++ list.groupBy(_.id).mapValues{ _.head }
 
   def lookup(pd: PomDependency): Option[PomDependency] =
     gnMap.get(pd.id)

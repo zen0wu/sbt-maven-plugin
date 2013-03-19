@@ -6,6 +6,8 @@ import Keys._
 /*
 TODO:
 - build paths settings(scalaSource in Compile := file(""), or <<= )
+- parent resolution based on coordinates, not only relativePath
+- logging with relative path of pom.xml, not absolute
 */
 
 abstract class MavenBuild extends PomBuild with SelectorDSL with GlobFactory with OrFactory {
@@ -23,9 +25,9 @@ object MavenBuild {
 }
 
 trait PomBuild extends Build {
-  protected lazy val pom = new Pom(".", "pom.xml", None)
+  protected lazy val pom = Pom("pom.xml")
 
   lazy val root = pom.project
 
-  override def projects = pom.allProjects
+  override def projects = root :: pom.allModules
 }
