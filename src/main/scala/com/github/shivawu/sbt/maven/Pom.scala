@@ -20,15 +20,31 @@ class Pom private (val pomFile: File) { self =>
   // Object methods
   override def toString = "Pom(" + pomFile + ")"
 
+  // Util methods
+  private def getText(x: NodeSeq): Option[String] = 
+    x.headOption.map(_.text)
+
   // Parent
-  val parent: Option[Pom] = 
+  val parentCoordinates = 
+    if ((xml \ "parent").isEmpty) (None, None, None)
+    else {
+      val pnt = (xml \ "parent") 
+      (
+        getText(pnt \ "groupId"), 
+        getText(pnt \ "artifactId"), 
+        getText(pnt \ "version")
+      )
+    }
+  lazy val parent: Option[Pom] = 
     if ((xml \ "parent").isEmpty)
       None
     else {
       val pntRelativePath = xml \ "parent" \ "relativePath"
       if (pntRelativePath.isEmpty || pntRelativePath.text == "") {
-        ConsoleLogger().warn("Parent of [" + pomFile + "] doesn't have a relative path, which is not supported now, ignoring(may cause problem)")
-        None
+        val pntPom = Pom.find(parentCoordinates._1.get, parentCoordinates._2.get)
+        if (pntPom == None)
+          ConsoleLogger().warn("Cannot resolve parent definition of [" + pomFile + "]")
+        pntPom
       }
       else {
         val pntPath = baseDir + "/" + pntRelativePath.text
@@ -36,8 +52,16 @@ class Pom private (val pomFile: File) { self =>
       }
     }
 
+  // Basic info
+  val groupId: String = getText(xml \ "groupId").orElse(parentCoordinates._1).orNull
+  val artifactId: String = getText(xml \ "artifactId").orNull
+  val ver: String = getText(xml \ "version").orElse(parentCoordinates._3).orNull
+  require(groupId != null, "Cannot resolve the groupId of [" + pomFile + "]")
+  require(artifactId != null, "Cannot resolve the artifactId of [" + pomFile + "]")
+  require(version != null, "Cannot resolve the version of [" + pomFile + "]")
+
   // Properties
-  val properties: PomProperty =
+  lazy val properties: PomProperty =
     new PomProperty(
       { // Property tags
         val x = (xml \ "properties").headOption
@@ -54,39 +78,34 @@ class Pom private (val pomFile: File) { self =>
       SuperPom.projectXml(baseDir)
     )
 
-  // Basic info
-  val groupId: String = getInheritedProperty(xml, "groupId", _.groupId)
-  val artifactId: String = getInheritedProperty(xml, "artifactId", _.artifactId)
-  val ver: String = getInheritedProperty(xml, "version", _.ver)
-
   // Dependencies
-  val dependencies: DependencySet = 
+  lazy val dependencies: DependencySet = 
     new DependencySet(
       (xml \ "dependencies" \ "dependency" map ( n => parseDependency(n, parent) )) ++
       parent.map(_.dependencies.list).toSeq.flatten
     )
 
-  val dependencyManagement: DependencySet = 
+  lazy val dependencyManagement: DependencySet = 
     new DependencySet(xml \ "dependencyManagement" \ "dependencies" \ "dependency" map ( n => parseDependency(n, None) ))
 
   // Repositories
-  val repositories: Seq[(String, String)] = 
+  lazy val repositories: Seq[(String, String)] = 
     (xml \ "repositories" \ "repository") map (n => ((n \ "id").text, (n \ "url").text))
 
   // Metadata
-  val licenseInfo = (xml \ "licenses" \ "license").map (p => ((p \ "name").text) -> new java.net.URL((p \ "url").text))
-  val organizationInfo = xml \ "organization"
-  val pomextra = xml \ "developers" ++
+  lazy val licenseInfo = (xml \ "licenses" \ "license").map (p => ((p \ "name").text) -> new java.net.URL((p \ "url").text))
+  lazy val organizationInfo = xml \ "organization"
+  lazy val pomextra = xml \ "developers" ++
     xml \ "contributors" ++
     xml \ "issueManagement" ++
     xml \ "mailingLists" ++
     xml \ "scm"
 
   // Scala version
-  val scalaVer = dependencies.lookup(Common.scalaLibrary).map(_.version)
+  lazy val scalaVer = dependencies.lookup(Common.scalaLibrary).map(_.version)
 
   // Modules
-  val modules: List[String] = 
+  lazy val modules: List[String] = 
     (xml \ "modules" \ "module").map { p: NodeSeq => baseDir + "/" + p.text + "/pom.xml" }.toList
 
   // SBT Models
@@ -112,11 +131,11 @@ class Pom private (val pomFile: File) { self =>
 
     val metadata: Seq[Setting[_]] = Common.projectSettings ++ 
       Seq(
-        name := artifactId,
-        organization := groupId,
-        version := ver,
-        description := (xml \ "description").headOption.map(_.text).getOrElse(artifactId),
-        organizationHomepage := (organizationInfo \ "url").headOption.map(_.text).map(new java.net.URL(_)),
+        name := resolveProperty(artifactId),
+        organization := resolveProperty(groupId),
+        version := resolveProperty(ver),
+        description := getText(xml \ "description").getOrElse(artifactId),
+        organizationHomepage := getText(organizationInfo \ "url").map(new java.net.URL(_)),
         licenses := licenseInfo,
         javacOptions ++= Common.javacOptions.foldLeft(List[String]()) { (opts: List[String], kv: (String, String)) =>
           val rv = properties apply kv._2
@@ -126,8 +145,8 @@ class Pom private (val pomFile: File) { self =>
         pomExtra := pomextra
       ) ++ 
       (Seq( // Optional metadata
-        startYear := (xml \ "inceptionYear").headOption.map(_.text).map(_.toInt),
-        homepage := (xml \ "url").headOption.map(_.text).map(new java.net.URL(_))
+        startYear := getText(xml \ "inceptionYear").map(_.toInt),
+        homepage := getText(xml \ "url").map(new java.net.URL(_))
       ).flatten) ++
       scalaVer.map(scalaVersion := _)
       
@@ -143,12 +162,6 @@ class Pom private (val pomFile: File) { self =>
     )
   }
 
-  protected def getInheritedProperty(node: NodeSeq, name: String, fromParent: Pom => String): String = {
-    val res = (node \ name).headOption.map(_.text).orElse(parent map(fromParent)).orNull
-    require(res != null, "project [" + baseDir + "]'s " + name + " is null")
-    resolveProperty(res)
-  }
-
   protected def parseDependency(node: NodeSeq, parent: Option[Pom]): PomDependency = {
     val (groupId, name) = (
       resolveProperty((node \ "groupId").text),
@@ -157,10 +170,10 @@ class Pom private (val pomFile: File) { self =>
     require(groupId != "", "groupId is empty")
     require(name != "", "artifactId is empty")
 
-    val fallback: Option[PomDependency] = parent flatMap{ _.dependencyManagement.lookup(groupId, name) }
-    val version = (node \ "version").headOption.map(_.text).map(resolveProperty _).orElse(fallback.map(_.version))
+    val fallback: Option[PomDependency] = parent flatMap { _.dependencyManagement.lookup(groupId, name) }
+    val version = getText(node \ "version").map(resolveProperty _).orElse(fallback.map(_.version))
     require(version != None, "version is empty, even with parent's dependency management")
-    val scope = (node \ "scope").headOption.map(_.text).map(resolveProperty _).orElse(fallback.flatMap(_.scope))
+    val scope = getText(node \ "scope").map(resolveProperty _).orElse(fallback.flatMap(_.scope))
     val classifier = (node \ "classifier").map(_.text).toList
     val exclusions = (node \ "exclusions" \ "exclusion").map{ex =>
       ((ex \ "groupId").text, (ex \ "artifactId").text)
@@ -206,10 +219,10 @@ object Pom {
       pomOfCoord += (pom.groupId + ":" + pom.artifactId) -> pom
     }
 
-//    pom.modules.map(apply _)
     pomOfFile(realPath)
   }
 
   def find(group: String, name: String) =
     pomOfCoord.get(group + ":" + name)
 }
+
