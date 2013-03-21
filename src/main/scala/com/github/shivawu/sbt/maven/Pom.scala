@@ -190,7 +190,7 @@ class Pom private (val pomFile: File) { self =>
 
     val remainKeys = ResolveUtil.findAllKeys(value)
     if (!remainKeys.isEmpty)
-      ConsoleLogger().warn("Some keys are not value, [" + remainKeys.mkString(", ") + "]")
+      ConsoleLogger().warn("Some keys are not resolved, [" + remainKeys.mkString(", ") + "]")
     value
   }
 }
@@ -225,4 +225,3 @@ object Pom {
   def find(group: String, name: String) =
     pomOfCoord.get(group + ":" + name)
 }
-
