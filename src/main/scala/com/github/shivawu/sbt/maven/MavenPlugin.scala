@@ -12,7 +12,7 @@ object MavenPlugin extends Plugin {
         Seq()
       }
       else {
-        val pom = Pom("pom.xml")
+        val pom = Pom(new java.io.File("./pom.xml"))
         val noModuleDef = pom.modules.isEmpty
         // If this is a multiple module pom, we won't do anything
         if (!noModuleDef) {

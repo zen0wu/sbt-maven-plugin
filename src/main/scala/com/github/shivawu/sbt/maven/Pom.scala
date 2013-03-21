@@ -9,20 +9,26 @@ import Keys._
 import property.PomProperty
 import property.ResolveUtil
 
+/*
+TODO:
+- build paths settings(scalaSource in Compile := file(""), or <<= )
+*/
 class Pom private (val pomFile: File) { self =>
-  require(pomFile.exists, "[" + pomFile.getCanonicalPath + "] doesn't exist")
-
-  ConsoleLogger().info("Loading [" + pomFile + "]")
-  val baseDir = pomFile.getCanonicalFile.getParent
-
-  val xml = XML.loadFile(pomFile) \\ "project"
-
   // Object methods
+  val inspect = PathUtil.relativeTo(pomFile)
   override def toString = "Pom(" + pomFile + ")"
 
   // Util methods
   private def getText(x: NodeSeq): Option[String] = 
     x.headOption.map(_.text)
+
+  require(pomFile.exists, "[" + pomFile + "] doesn't exist")
+
+  ConsoleLogger().info("Loading [" + inspect + "]")
+  val baseDir = pomFile.getCanonicalFile.getParent
+
+  val xml = XML.loadFile(pomFile) \\ "project"
+
 
   // Parent
   val parentCoordinates = 
@@ -43,12 +49,13 @@ class Pom private (val pomFile: File) { self =>
       if (pntRelativePath.isEmpty || pntRelativePath.text == "") {
         val pntPom = Pom.find(parentCoordinates._1.get, parentCoordinates._2.get)
         if (pntPom == None)
-          ConsoleLogger().warn("Cannot resolve parent definition of [" + pomFile + "]")
+          ConsoleLogger().warn("Cannot resolve parent definition of [" + inspect + "]")
         pntPom
       }
       else {
         val pntPath = baseDir + "/" + pntRelativePath.text
-        Some(Pom(if (new File(pntPath).isDirectory) pntPath + "/pom.xml" else pntPath))
+        val pntPom = if (new File(pntPath).isDirectory) pntPath + "/pom.xml" else pntPath
+        Some(Pom(new File(PathUtil.chdir(pntPom, baseDir))))
       }
     }
 
@@ -56,9 +63,9 @@ class Pom private (val pomFile: File) { self =>
   val groupId: String = getText(xml \ "groupId").orElse(parentCoordinates._1).orNull
   val artifactId: String = getText(xml \ "artifactId").orNull
   val ver: String = getText(xml \ "version").orElse(parentCoordinates._3).orNull
-  require(groupId != null, "Cannot resolve the groupId of [" + pomFile + "]")
+  require(groupId != null, "Cannot resolve the groupId of [" + inspect + "]")
   require(artifactId != null, "Cannot resolve the artifactId of [" + pomFile + "]")
-  require(version != null, "Cannot resolve the version of [" + pomFile + "]")
+  require(version != null, "Cannot resolve the version of [" + inspect + "]")
 
   // Properties
   lazy val properties: PomProperty =
@@ -109,7 +116,7 @@ class Pom private (val pomFile: File) { self =>
     (xml \ "modules" \ "module").map { p: NodeSeq => baseDir + "/" + p.text + "/pom.xml" }.toList
 
   // SBT Models
-  lazy val allModules: List[Project] = modules.map(Pom.apply _).flatMap(m => m.project :: m.allModules)
+  lazy val allModules: List[Project] = modules.map(p => Pom.apply(new File(PathUtil.chdir(p, baseDir)))).flatMap(m => m.project :: m.allModules)
 
   lazy val project: Project = {
     ConsoleLogger().debug("Converting pom.xml to SBT project")
@@ -200,9 +207,8 @@ object Pom {
   private val pomOfCoord = collection.mutable.Map[String, Pom]()
   private val processing = collection.mutable.Set[String]()
 
-  def apply(pomFilePath: String): Pom = {
-    val pomFile = new File(pomFilePath)
-    assert(pomFile.exists, "[" + pomFilePath + "] doesn't exist")
+  def apply(pomFile: File): Pom = {
+    assert(pomFile.exists, "[" + pomFile + "] doesn't exist")
 
     val realPath = pomFile.getCanonicalPath
     assert(!(processing contains realPath), {
