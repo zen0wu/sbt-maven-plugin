@@ -15,7 +15,7 @@ object MavenPlugin extends Plugin {
         val pom = Pom(new java.io.File("./pom.xml"))
         val noModuleDef = pom.modules.isEmpty
         // If this is a multiple module pom, we won't do anything
-        if (!noModuleDef) {
+        if (noModuleDef) {
           // Here we should use log.info, but I don't know how
           // UPDATE: I figured it out!! Use ConsoleLogger().info
           //         SBT's documentation and design is unbelievable!
