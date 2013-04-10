@@ -29,7 +29,6 @@ class Pom private (val pomFile: File) { self =>
 
   val xml = XML.loadFile(pomFile) \\ "project"
 
-
   // Parent
   val parentCoordinates = 
     if ((xml \ "parent").isEmpty) (None, None, None)
@@ -60,29 +59,38 @@ class Pom private (val pomFile: File) { self =>
     }
 
   // Basic info
-  val groupId: String = getText(xml \ "groupId").orElse(parentCoordinates._1).orNull
-  val artifactId: String = getText(xml \ "artifactId").orNull
-  val ver: String = getText(xml \ "version").orElse(parentCoordinates._3).orNull
+  private val pomPropertyDefs: Map[String, String] = { // properties defined in pom.xml
+    val x = (xml \ "properties").headOption
+    if (x == None) Map()
+    else Map() ++ 
+      x.get.child.map(p => p.label -> p.text)
+        .filterNot(_._1 == "#PCDATA")
+  }
+  private val localProperties: PomProperty = new PomProperty(
+    kvs = pomPropertyDefs,
+    parent = None,
+    pom = xml,
+    superPom = SuperPom.projectXml(baseDir)
+  )
+
+  val groupId: String = getText(xml \ "groupId").orElse(parentCoordinates._1).map(localProperties.resolve _).orNull
+  val artifactId: String = getText(xml \ "artifactId").map(localProperties.resolve _).orNull
+  val ver: String = getText(xml \ "version").orElse(parentCoordinates._3).map(localProperties.resolve _).orNull
   require(groupId != null, "Cannot resolve the groupId of [" + inspect + "]")
   require(artifactId != null, "Cannot resolve the artifactId of [" + pomFile + "]")
   require(version != null, "Cannot resolve the version of [" + inspect + "]")
 
-  // Properties
+  ConsoleLogger().debug("GroupId = " + groupId + ", ArtifactId = " + artifactId + ", Version = " + ver)
+
+  // Properties(with inheritance)
   lazy val properties: PomProperty =
     new PomProperty(
-      { // Property tags
-        val x = (xml \ "properties").headOption
-        if (x == None) Map()
-        else Map() ++ 
-          x.get.child.map(p => p.label -> p.text)
-            .filterNot(_._1 == "#PCDATA")
-      },
-      // Super project properties,
-      parent.map(_.properties),
-      // This pom.xml project properties
-      xml,
+      kvs = pomPropertyDefs,
+      parent = parent.map(_.properties),
+      // project properties such as ${project.xxx}
+      pom = xml,
       // Super pom properties
-      SuperPom.projectXml(baseDir)
+      superPom = SuperPom.projectXml(baseDir)
     )
 
   // Dependencies
@@ -158,7 +166,7 @@ class Pom private (val pomFile: File) { self =>
       scalaVer.map(scalaVersion := _)
       
     val bare = Project(
-      id = artifactId, 
+      id = StringUtilities.normalize(artifactId.replace(".", "_")),
       base = new File(baseDir)
     ).settings(metadata: _*)
     val withSubprojs = (bare /: allModules) (_ aggregate _)
