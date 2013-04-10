@@ -4,17 +4,16 @@ import sbt._
 import Keys._
 
 abstract class MavenBuild extends PomBuild with SelectorDSL with GlobFactory with OrFactory {
-	MavenBuild.instantiate
+	MavenBuild.instantiate(this.getClass.getName)
 
   implicit def stringToSelector(s: String) = produce(s)
 }
 
 object MavenBuild {
-	private var instantiated = false
+	private var instanceName: Option[String] = None
+	private[MavenBuild] def instantiate(name: String) { instanceName = Some(name) }
 
-	private[MavenBuild] def instantiate { instantiated = true }
-
-	def isInstantiated = instantiated
+	def getInstanceClassName: Option[String] = instanceName
 }
 
 trait PomBuild extends Build {

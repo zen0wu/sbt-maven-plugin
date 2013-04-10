@@ -9,7 +9,7 @@ object MavenSettings {
   val settingsXml: Option[NodeSeq] = {
     val file = sys.props("user.home") + "/.m2/settings.xml"
     if (new File(file).exists()) {
-      ConsoleLogger().info("Loading maven settings from " + file)
+      ConsoleLogger().info("Loading maven settings from [" + file + "]")
       (XML.loadFile(file) \\ "settings").headOption
     }
     else None
