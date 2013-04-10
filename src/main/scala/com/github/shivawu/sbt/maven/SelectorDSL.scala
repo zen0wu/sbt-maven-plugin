@@ -1,6 +1,7 @@
 package com.github.shivawu.sbt.maven
 
-import sbt.{Build, Project, Setting}
+import sbt.{Build, Project, Setting, Keys}
+import Keys._
 
 trait SelectorDSL extends Build { this: SelectorFactory =>
   var projectBuffer = super.projects

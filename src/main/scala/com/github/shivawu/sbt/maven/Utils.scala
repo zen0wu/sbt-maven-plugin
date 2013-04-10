@@ -4,7 +4,7 @@ object PathUtil {
 	import java.io.File
 
 	def relativeTo(target: File, base: File = new File(".")) = {
-		def toPath(file: File) = {
+		def toPathList(file: File) = {
 			var f = file.getCanonicalFile
 			val list = collection.mutable.ListBuffer[String]()
 			while (f != null) {
@@ -15,7 +15,7 @@ object PathUtil {
 			list.reverse.toList
 		}
 
-		val pairs = toPath(base).zipAll(toPath(target), null, null).dropWhile(p => p._1 == p._2)
+		val pairs = toPathList(base).zipAll(toPathList(target), null, null).dropWhile(p => p._1 == p._2)
 		val out = pairs.map(_._1).filter(_ != null).map(_ => "..")
 		val in = pairs.map(_._2).filter(_ != null)
 		(out ::: in).mkString("/")

@@ -52,9 +52,9 @@ class Pom private (val pomFile: File) { self =>
         pntPom
       }
       else {
-        val pntPath = baseDir + "/" + pntRelativePath.text
+        val pntPath = PathUtil.chdir(pntRelativePath.text, baseDir)
         val pntPom = if (new File(pntPath).isDirectory) pntPath + "/pom.xml" else pntPath
-        Some(Pom(new File(PathUtil.chdir(pntPom, baseDir))))
+        Some(Pom(new File(pntPom)))
       }
     }
 
@@ -120,11 +120,11 @@ class Pom private (val pomFile: File) { self =>
   lazy val scalaVer = dependencies.lookup(Common.scalaLibrary).map(_.version)
 
   // Modules
-  lazy val modules: List[String] = 
-    (xml \ "modules" \ "module").map { p: NodeSeq => baseDir + "/" + p.text + "/pom.xml" }.toList
+  lazy val modules: List[File] = 
+    (xml \ "modules" \ "module").map { p: NodeSeq => new File(PathUtil.chdir(p.text, baseDir) + "/pom.xml") }.toList
 
   // SBT Models
-  lazy val allModules: List[Project] = modules.map(p => Pom.apply(new File(PathUtil.chdir(p, baseDir)))).flatMap(m => m.project :: m.allModules)
+  lazy val allModules: List[Project] = modules.map(p => Pom.apply(p)).flatMap(m => m.project :: m.allModules)
 
   lazy val project: Project = {
     ConsoleLogger().debug("Converting pom.xml to SBT project")
@@ -166,7 +166,7 @@ class Pom private (val pomFile: File) { self =>
       scalaVer.map(scalaVersion := _)
       
     val bare = Project(
-      id = StringUtilities.normalize(artifactId.replace(".", "_")),
+      id = artifactId.replace(".", "_"),
       base = new File(baseDir)
     ).settings(metadata: _*)
     val withSubprojs = (bare /: allModules) (_ aggregate _)
