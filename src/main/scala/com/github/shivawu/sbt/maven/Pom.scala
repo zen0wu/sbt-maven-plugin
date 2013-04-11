@@ -117,7 +117,7 @@ class Pom private (val pomFile: File) { self =>
     xml \ "scm"
 
   // Scala version
-  lazy val scalaVer = dependencies.lookup(Common.scalaLibrary).map(_.version)
+  lazy val scalaVer: Option[String] = dependencies.lookup(Common.scalaLibrary).map(_.version)
 
   // Modules
   lazy val modules: List[File] = 
@@ -141,7 +141,11 @@ class Pom private (val pomFile: File) { self =>
           true
         }
       }
-      (in.map(d => Pom.find(d.groupId, d.name).get).map(_.project), ex)
+      (
+        in.map(d => Pom.find(d.groupId, d.name).get).map(_.project), 
+        // filter out scala-library since we're adding it through "autoScalaLibrary := true"
+        ex.filterNot(d => d.groupId == Common.scalaLibrary._1 && d.name == Common.scalaLibrary._2)
+      )
     }
 
     val metadata: Seq[Setting[_]] = Common.projectSettings ++ 
@@ -163,7 +167,16 @@ class Pom private (val pomFile: File) { self =>
         startYear := getText(xml \ "inceptionYear").map(_.toInt),
         homepage := getText(xml \ "url").map(new java.net.URL(_))
       ).flatten) ++
-      scalaVer.map(scalaVersion := _)
+      (scalaVer match { // Scala version setting
+        case None => Seq(
+          autoScalaLibrary := false
+        )
+        case Some(sv) => 
+          Seq(
+            autoScalaLibrary := true,
+            scalaVersion := sv
+          )
+      })
       
     val bare = Project(
       id = artifactId.replace(".", "_"),
