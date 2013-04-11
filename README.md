@@ -80,6 +80,8 @@ object MyBuild extends MavenBuild {
 		javacOptions ++= Seq("-source", "1.6")
 	)
 
+	// Here "a" is a project id, which is set to the artifactId
+	// BUT! SBT doesn't allow "." in the id, so the "." is replaced with "_"
 	project("a") (
 		// Project specific settings here
 	)

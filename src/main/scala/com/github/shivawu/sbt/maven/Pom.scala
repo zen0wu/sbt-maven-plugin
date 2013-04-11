@@ -137,7 +137,7 @@ class Pom private (val pomFile: File) { self =>
         else {
           if (indep.get.ver != dep.version) 
             ConsoleLogger().warn("Inner dependency [" + dep.groupId + ":" + dep.name + "] has incomptiable version with in [" 
-              + indep.get.pomFile + "], but ignoring")
+              + indep.get.pomFile + "], ignored")
           true
         }
       }
