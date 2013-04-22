@@ -36,7 +36,7 @@ Usage
 
 Add the following to `project/plugins.sbt`
 ```scala
-addSbtPlugin("com.github.shivawu" % "sbt-maven-plugin" % "0.1.0")
+addSbtPlugin("com.github.shivawu" % "sbt-maven-plugin" % "0.1.2")
 ```
 
 Or go the hard way, add the following code to `project/project/Plugins.scala`
@@ -47,7 +47,7 @@ import Keys._
 
 object Plugins extends Build {
   lazy val root = Project("root", file(".")).settings(
-  	addSbtPlugin("com.github.shivawu" % "sbt-maven-plugin" % "0.1.0")
+  	addSbtPlugin("com.github.shivawu" % "sbt-maven-plugin" % "0.1.2")
   )
 }
 ```
