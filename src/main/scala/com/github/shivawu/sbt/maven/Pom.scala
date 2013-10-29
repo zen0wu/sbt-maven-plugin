@@ -129,7 +129,7 @@ class Pom private (val pomFile: File) { self =>
   lazy val project: Project = {
     ConsoleLogger().debug("Converting pom.xml to SBT project")
 
-    val (indeps, exdeps): (List[Project], List[PomDependency]) = {
+    val (indeps, exdeps): (Seq[Project], Seq[PomDependency]) = {
       val (in, ex) = dependencies.list.partition { dep => 
         val indep = Pom.find(dep.groupId, dep.name)
         if (indep == None) 
