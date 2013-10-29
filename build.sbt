@@ -8,7 +8,7 @@ version := "0.1.3-SNAPSHOT"
 
 publishMavenStyle := true
 
-scalaVersion := "2.9.2"
+scalaVersion := "2.10.0"
 
 scalacOptions <<= scalaVersion map { v: String =>
   val default = Seq("-unchecked", "-deprecation")
