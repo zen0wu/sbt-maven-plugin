@@ -101,11 +101,15 @@ class Pom private (val pomFile: File) { self =>
     )
 
   lazy val dependencyManagement: DependencySet = 
-    new DependencySet(xml \ "dependencyManagement" \ "dependencies" \ "dependency" map ( n => parseDependency(n, None) ))
+    new DependencySet(
+        (xml \ "dependencyManagement" \ "dependencies" \ "dependency" map ( n => parseDependency(n, None) )) ++ 
+        parent.map(_.dependencyManagement.list).toSeq.flatten
+    )
 
   // Repositories
   lazy val repositories: Seq[(String, String)] = 
-    (xml \ "repositories" \ "repository") map (n => ((n \ "id").text, (n \ "url").text))
+      (xml \ "repositories" \ "repository" map (n => ((n \ "id").text, (n \ "url").text))) ++
+      parent.map(_.repositories).toSeq.flatten
 
   // Metadata
   lazy val licenseInfo = (xml \ "licenses" \ "license").map (p => ((p \ "name").text) -> new java.net.URL((p \ "url").text))
