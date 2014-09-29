@@ -36,7 +36,9 @@ Usage
 
 Add the following to `project/plugins.sbt`
 ```scala
-addSbtPlugin("com.github.shivawu" % "sbt-maven-plugin" % "0.1.2")
+addSbtPlugin("com.github.shivawu" % "sbt-maven-plugin" % "0.1.3-SNAPSHOT")
+
+resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 ```
 
 Or go the hard way, add the following code to `project/project/Plugins.scala`
@@ -47,7 +49,9 @@ import Keys._
 
 object Plugins extends Build {
   lazy val root = Project("root", file(".")).settings(
-  	addSbtPlugin("com.github.shivawu" % "sbt-maven-plugin" % "0.1.2")
+  	addSbtPlugin("com.github.shivawu" % "sbt-maven-plugin" % "0.1.3-SNAPSHOT")
+	resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+
   )
 }
 ```
