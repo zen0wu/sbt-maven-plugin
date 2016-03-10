@@ -14,3 +14,4 @@ project/plugins/project/
 
 # project specific
 test-projects
+.ensime*

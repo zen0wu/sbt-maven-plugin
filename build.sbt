@@ -8,7 +8,7 @@ version := "0.1.3-SNAPSHOT"
 
 publishMavenStyle := true
 
-scalaVersion := "2.10.3"
+scalaVersion := "2.10.4"
 
 scalacOptions <<= scalaVersion map { v: String =>
   val default = Seq("-unchecked", "-deprecation")
@@ -27,6 +27,8 @@ publishTo <<= version { (v: String) =>
   else
     Some("releases"  at nexus + "service/local/staging/deploy/maven2")
 }
+
+libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.6" % "test"
 
 homepage := Some(url("https://github.com/shivawu/sbt-maven-plugin"))
 

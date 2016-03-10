@@ -2,7 +2,7 @@ package com.github.shivawu.sbt.maven
 
 import sbt._
 
-class PomDependency(
+case class PomDependency(
   val groupId: String, 
   val name: String, 
   val version: String, 

@@ -214,7 +214,7 @@ class Pom private (val pomFile: File) { self =>
       case exs => exs
     }
 
-    new PomDependency(groupId, name, version.get, scope, classifier, exclusions)
+    PomDependency(groupId, name, version.get, scope, classifier, exclusions)
   }
 
   private def resolveProperty(key: String) = {
