@@ -121,7 +121,7 @@ class Pom private (val pomFile: File) { self =>
     xml \ "scm"
 
   // Scala version
-  lazy val scalaVer: Option[String] = dependencies.lookup(Common.scalaLibrary).map(_.version)
+  lazy val scalaVer: Option[String] = dependencies.lookup(Common.scalaLibrary).flatMap(_.version)
 
   // Modules
   lazy val modules: List[File] = 
@@ -203,8 +203,7 @@ class Pom private (val pomFile: File) { self =>
     require(name != "", "artifactId is empty")
 
     val fallback: Option[PomDependency] = parent flatMap { _.dependencyManagement.lookup(groupId, name) }
-    val version = getText(node \ "version").map(resolveProperty _).orElse(fallback.map(_.version))
-    require(version != None, "version is empty, even with parent's dependency management")
+    val version: Option[String] = getText(node \ "version").map(resolveProperty _).orElse(fallback.flatMap(_.version))
     val scope = getText(node \ "scope").map(resolveProperty _).orElse(fallback.flatMap(_.scope))
     val classifier = (node \ "classifier").map(_.text).toList
     val exclusions = (node \ "exclusions" \ "exclusion").map{ex =>
@@ -214,7 +213,7 @@ class Pom private (val pomFile: File) { self =>
       case exs => exs
     }
 
-    PomDependency(groupId, name, version.get, scope, classifier, exclusions)
+    PomDependency(groupId, name, version, scope, classifier, exclusions)
   }
 
   private def resolveProperty(key: String) = {

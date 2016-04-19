@@ -15,12 +15,12 @@ class PomSpec extends FunSpec with Matchers {
     it("parses and interprets dependencies properly") {
       pomFixture.dependencies.list shouldBe (
         List(
-          PomDependency("org.apache.spark", "spark-core_2.10",     "1.5.0-3.6.0", Some("provided")),
-          PomDependency("org.apache.spark", "spark-assembly_2.10", "1.5.0-3.6.0", Some("provided")),
-          PomDependency("org.apache.spark", "spark-sql_2.10",      "1.5.0-3.6.0", Some("provided")),
-          PomDependency("org.scala-lang",   "scala-library",       "2.10.4",      Some("provided")),
-          PomDependency("org.apache.spark", "spark-hive_2.10",     "1.5.0-3.6.0", Some("provided")),
-          PomDependency("com.github.scopt", "scopt_2.10",          "3.3.0")))
+          PomDependency("org.apache.spark", "spark-core_2.10",     Some("1.5.0-3.6.0"), Some("provided")),
+          PomDependency("org.apache.spark", "spark-assembly_2.10", Some("1.5.0-3.6.0"), Some("provided")),
+          PomDependency("org.apache.spark", "spark-sql_2.10",      Some("1.5.0-3.6.0"), Some("provided")),
+          PomDependency("org.scala-lang",   "scala-library",       Some("2.10.4"),      Some("provided")),
+          PomDependency("org.apache.spark", "spark-hive_2.10",     Some("1.5.0-3.6.0"), Some("provided")),
+          PomDependency("com.github.scopt", "scopt_2.10",          Some("3.3.0"))))
     }
   }
 }

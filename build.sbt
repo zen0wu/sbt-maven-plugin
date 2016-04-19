@@ -21,11 +21,13 @@ scalacOptions <<= scalaVersion map { v: String =>
 crossScalaVersions := Seq("2.9.1", "2.9.2", "2.10.0", "2.10.3")
 
 publishTo <<= version { (v: String) =>
-  val nexus = "https://oss.sonatype.org/"
-  if (v.trim.endsWith("SNAPSHOT"))
-    Some("snapshots" at nexus + "content/repositories/snapshots")
-  else
-    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+  // val nexus = "https://oss.sonatype.org/"
+  // if (v.trim.endsWith("SNAPSHOT"))
+  //   Some("snapshots" at nexus + "content/repositories/snapshots")
+  // else
+  //   Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+
+  Some("releases" at "https://dashboards.vivintsky.com/artifactory/sbt-plugins-release-local")
 }
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.6" % "test"
