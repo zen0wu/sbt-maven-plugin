@@ -14,7 +14,7 @@ case class PomDependency(
   def id = groupId + ":" + name
 
   def toDependency = {
-    val v = version.getOrElse { throw new RuntimeException("Maven version is empty for dependency ${groupId} / ${name}; sbt does not support version-less dependencies") }
+    val v = version.getOrElse { throw new RuntimeException(s"Maven version is empty for dependency ${groupId} / ${name}; sbt does not support version-less dependencies") }
     val depWithoutScope = groupId % name % version.get
     val dep = scope.map(depWithoutScope % _).getOrElse(depWithoutScope)
     val classified = (dep /: classifier)((moduleId, clf) => moduleId classifier clf)
