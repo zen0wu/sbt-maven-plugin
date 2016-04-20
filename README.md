@@ -36,7 +36,7 @@ Usage
 
 Add the following to `project/plugins.sbt`
 ```scala
-addSbtPlugin("com.github.shivawu" % "sbt-maven-plugin" % "0.1.2")
+addSbtPlugin("com.timcharper" % "sbt-maven-plugin" % "0.1.3-RC1")
 ```
 
 Or go the hard way, add the following code to `project/project/Plugins.scala`
@@ -47,53 +47,22 @@ import Keys._
 
 object Plugins extends Build {
   lazy val root = Project("root", file(".")).settings(
-  	addSbtPlugin("com.github.shivawu" % "sbt-maven-plugin" % "0.1.2")
+  	addSbtPlugin("com.timcharper" % "sbt-maven-plugin" % "0.1.3-RC1")
   )
 }
 ```
 
 ### Single module project
 
-__See the configuration section above? Do that, and done.__ Just make sure there's a `pom.xml` in your current folder.
+By default, the `pom.xml` in the same build is loaded, parsed, and made available to sbt as `pom`. However, the settings must be included into your project. You can do that by creating a single `build.sbt` file, and adding `settingsFromMaven` to it. You can also access an entire project definition itself, like this:
 
-I assume that if you're using this plugin, you will assure that `pom.xml` is at the same 
-folder with `project` or `build.sbt`. So, this plugin is designed that minimal effort is needed for users. 
-
-This is achieved by override the `settings` field in `Plugin` trait and this settings will be add to all projects' settings automatically.
-
-This default behavior will be disabled **only when** there is module definition in `pom.xml` 
-or any `MavenBuild` is instantiated from `.scala` build definition. (Here we took the advantages of `.scala` def is executed before importing `.sbt` def)
+```
+val root = pom.project
+```
 
 ### Multi module project
 
-Due to `sbt`'s design, multi-module project can only be defined in `project/???Build.scala`. Here, we use these settings:
 
-```scala
-import com.github.shivawu.sbt.maven.MavenBuild // Sorry for the long package name :-(
-
-object MyBuild extends MavenBuild {
-	// "*" is a selector which selects all modules
-	project("*")(
-		// Note that these properties like compile source, target, encoding 
-		// are treated as common properties. So set a pom.xml property 
-		// like "<maven.compiler.source>1.6</maven.compiler.source>" also works.
-		javacOptions ++= Seq("-source", "1.6")
-	)
-
-	// Here "a" is a project id, which is set to the artifactId
-	// BUT! SBT doesn't allow "." in the id, so the "." is replaced with "_"
-	project("a") (
-		// Project specific settings here
-	)
-
-	// Note that you can select multiple(but not all) modules using the "|" operator
-	project("b" | "c") (
-		assemblySettings ++ Seq(
-      		test in assembly := {}
-      	)
-	:_*) // Finally convert it to a Setting[_]*
-}
-```
 
 Features
 --------
@@ -116,3 +85,5 @@ Licensed under _Apache License, Version 2.0_. You may obtain a copy of the licen
 [http://www.apache.org/licenses/LICENSE-2.0]()
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+
+This project has been forked from https://github.com/shivawu/sbt-maven-plugin by Tim Harper (https://github.com/timcharper), because it was abandoned.

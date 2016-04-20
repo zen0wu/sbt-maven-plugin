@@ -1,4 +1,4 @@
-package com.github.shivawu.sbt.maven
+package com.timcharper.sbt.maven
 
 import java.io.File
 import xml._
@@ -123,12 +123,16 @@ class Pom private (val pomFile: File) { self =>
   // Scala version
   lazy val scalaVer: Option[String] = dependencies.lookup(Common.scalaLibrary).flatMap(_.version)
 
-  // Modules
-  lazy val modules: List[File] = 
-    (xml \ "modules" \ "module").map { p: NodeSeq => new File(PathUtil.chdir(p.text, baseDir) + "/pom.xml") }.toList
+  // Files pointing to pom.xml
+  lazy val moduleFiles: Map[String, File] = 
+    (xml \ "modules" \ "module").map { p: NodeSeq => (p.text, new File(PathUtil.chdir(p.text, baseDir) + "/pom.xml")) }.toMap
 
-  // SBT Models
-  lazy val allModules: List[Project] = modules.map(p => Pom.apply(p)).flatMap(m => m.project :: m.allModules)
+  // Pom modules
+  lazy val modules: Map[String, Pom] =
+    moduleFiles.map { case (k, v) => (k, Pom(v)) }.toMap
+
+  // SBT Project Models for all included modules
+  lazy val allModules: List[Project] = modules.values.flatMap(m => m.project :: m.allModules).toList
 
   lazy val project: Project = {
     ConsoleLogger().debug("Converting pom.xml to SBT project")
