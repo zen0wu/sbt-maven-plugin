@@ -8,7 +8,7 @@ version := "0.1.3-SNAPSHOT"
 
 publishMavenStyle := true
 
-scalaVersion := "2.10.4"
+scalaVersion := "2.10.5"
 
 scalacOptions <<= scalaVersion map { v: String =>
   val default = Seq("-unchecked", "-deprecation")
@@ -17,8 +17,6 @@ scalacOptions <<= scalaVersion map { v: String =>
   else
     default
 }
-
-crossScalaVersions := Seq("2.9.1", "2.9.2", "2.10.0", "2.10.3")
 
 publishTo <<= version { (v: String) =>
   // val nexus = "https://oss.sonatype.org/"
