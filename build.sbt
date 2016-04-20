@@ -4,7 +4,7 @@ name := "sbt-maven-plugin"
 
 organization := "com.timcharper"
 
-version := "0.1.3-RC1"
+version := "0.1.3-RC2"
 
 publishMavenStyle := true
 

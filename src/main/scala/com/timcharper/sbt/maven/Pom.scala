@@ -132,7 +132,13 @@ class Pom private (val pomFile: File) { self =>
     moduleFiles.map { case (k, v) => (k, Pom(v)) }.toMap
 
   // SBT Project Models for all included modules
-  lazy val allModules: List[Project] = modules.values.flatMap(m => m.project :: m.allModules).toList
+  lazy protected [maven] val allModuleProjects: List[Project] = modules.values.flatMap { m => m.project :: m.allModuleProjects }.toList
+
+  /**
+    Helper accessor because implicit magic causes awful errors when accessing project.settings
+    */
+  lazy val projectSettings: Seq[Setting[_]] =
+    project.settings
 
   lazy val project: Project = {
     ConsoleLogger().debug("Converting pom.xml to SBT project")
@@ -190,7 +196,7 @@ class Pom private (val pomFile: File) { self =>
       id = artifactId.replace(".", "_"),
       base = new File(baseDir)
     ).settings(metadata: _*)
-    val withSubprojs = (bare /: allModules) (_ aggregate _)
+    val withSubprojs = (bare /: allModuleProjects) (_ aggregate _)
     val withInterDeps = (withSubprojs /: indeps) (_ dependsOn _)
     withInterDeps.settings(
       libraryDependencies ++= exdeps map (_.toDependency),

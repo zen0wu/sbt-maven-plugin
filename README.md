@@ -36,7 +36,7 @@ Usage
 
 Add the following to `project/plugins.sbt`
 ```scala
-addSbtPlugin("com.timcharper" % "sbt-maven-plugin" % "0.1.3-RC1")
+addSbtPlugin("com.timcharper" % "sbt-maven-plugin" % "0.1.3-RC2")
 ```
 
 Or go the hard way, add the following code to `project/project/Plugins.scala`
@@ -47,14 +47,18 @@ import Keys._
 
 object Plugins extends Build {
   lazy val root = Project("root", file(".")).settings(
-  	addSbtPlugin("com.timcharper" % "sbt-maven-plugin" % "0.1.3-RC1")
+    addSbtPlugin("com.timcharper" % "sbt-maven-plugin" % "0.1.3-RC2")
   )
 }
 ```
 
 ### Single module project
 
-By default, the `pom.xml` in the same build is loaded, parsed, and made available to sbt as `pom`. However, the settings must be included into your project. You can do that by creating a single `build.sbt` file, and adding `settingsFromMaven` to it. You can also access an entire project definition itself, like this:
+By default, the `pom.xml` in the same build is loaded, parsed, and made
+available to sbt as `pom`. However, the settings must be included into your
+project. You can do that by creating a single `build.sbt` file, and adding
+`settingsFromMaven` to it. You can also access an entire project definition
+itself, like this:
 
 ```
 val root = pom.project
@@ -62,7 +66,38 @@ val root = pom.project
 
 ### Multi module project
 
+If you have a multi-module pom file, then create a `build.sbt` file in the same
+folder containing your multi-module `pom.xml`.
 
+For example, if your `pom.xml` contains the following modules:
+
+```
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <!-- ... -->
+  <modules>
+    <module>super-duper-core</module>
+    <module>super-duper-app</module>
+  </modules>
+  <!-- ... -->
+```
+
+Also, say `super-duper-app` depends on `super duper-core`.
+
+
+Multi-module projects can be accessed in `build.sbt`. If you wish to use all of the settings, vanilla, simply declare them as follows:
+
+```
+lazy val `super-duper-app` = pom.modules("super-duper-app").project.
+  setting() // additional settings can go here
+
+/* `super-duper-app` project will be automatically configured to depend on an
+   sbt project with id `super-duper-core`; naming the following project as
+   follows fulfills this dependency, which will otherwise result in error */
+
+lazy val `super-duper-core` = pom.modules("super-duper-core").project
+```
+
+`pom.modules("super-duper-app")` returns a Pom class. If you need to further customize the project configuration, `projectSettings` and `dependencies` are available methods on the Pom class. `dependencies.list` returns a `List[PomDependency]`, and `PomDependency` has a method `.toDependency` which returns an SBT dependency. For further help, post an issue, or read the source.
 
 Features
 --------

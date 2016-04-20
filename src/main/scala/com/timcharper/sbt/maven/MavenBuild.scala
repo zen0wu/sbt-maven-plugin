@@ -21,5 +21,5 @@ trait PomBuild extends Build {
 
   lazy val root = pom.project
 
-  override def projects = root :: pom.allModules
+  override def projects = root :: pom.allModuleProjects
 }
