@@ -1,11 +1,11 @@
-package com.github.shivawu.sbt.maven
+package com.timcharper.sbt.maven
 
 import sbt._
 
-class PomDependency(
+case class PomDependency(
   val groupId: String, 
   val name: String, 
-  val version: String, 
+  val version: Option[String],
   val scope: Option[String] = None,
   val classifier: Seq[String] = Nil,
   val exclusions: Seq[(String, String)] = Nil
@@ -14,10 +14,10 @@ class PomDependency(
   def id = groupId + ":" + name
 
   def toDependency = {
-    val d = 
-      if (scope == None) groupId % name % version
-      else groupId % name % version % scope.get
-    val classified = (d /: classifier)((d, clf) => d classifier clf)
+    val v = version.getOrElse { throw new RuntimeException(s"Maven version is empty for dependency ${groupId} / ${name}; sbt does not support version-less dependencies") }
+    val depWithoutScope = groupId % name % version.get
+    val dep = scope.map(depWithoutScope % _).getOrElse(depWithoutScope)
+    val classified = (dep /: classifier)((moduleId, clf) => moduleId classifier clf)
     (classified /: exclusions){
       case (dep, (exOrg, exName)) => dep.exclude(exOrg, exName)
     }

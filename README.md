@@ -36,7 +36,7 @@ Usage
 
 Add the following to `project/plugins.sbt`
 ```scala
-addSbtPlugin("com.github.shivawu" % "sbt-maven-plugin" % "0.1.2")
+addSbtPlugin("com.timcharper" % "sbt-maven-plugin" % "0.1.3-RC2")
 ```
 
 Or go the hard way, add the following code to `project/project/Plugins.scala`
@@ -47,53 +47,57 @@ import Keys._
 
 object Plugins extends Build {
   lazy val root = Project("root", file(".")).settings(
-  	addSbtPlugin("com.github.shivawu" % "sbt-maven-plugin" % "0.1.2")
+    addSbtPlugin("com.timcharper" % "sbt-maven-plugin" % "0.1.3-RC2")
   )
 }
 ```
 
 ### Single module project
 
-__See the configuration section above? Do that, and done.__ Just make sure there's a `pom.xml` in your current folder.
+By default, the `pom.xml` in the same build is loaded, parsed, and made
+available to sbt as `pom`. However, the settings must be included into your
+project. You can do that by creating a single `build.sbt` file, and adding
+`settingsFromMaven` to it. You can also access an entire project definition
+itself, like this:
 
-I assume that if you're using this plugin, you will assure that `pom.xml` is at the same 
-folder with `project` or `build.sbt`. So, this plugin is designed that minimal effort is needed for users. 
-
-This is achieved by override the `settings` field in `Plugin` trait and this settings will be add to all projects' settings automatically.
-
-This default behavior will be disabled **only when** there is module definition in `pom.xml` 
-or any `MavenBuild` is instantiated from `.scala` build definition. (Here we took the advantages of `.scala` def is executed before importing `.sbt` def)
+```
+val root = pom.project
+```
 
 ### Multi module project
 
-Due to `sbt`'s design, multi-module project can only be defined in `project/???Build.scala`. Here, we use these settings:
+If you have a multi-module pom file, then create a `build.sbt` file in the same
+folder containing your multi-module `pom.xml`.
 
-```scala
-import com.github.shivawu.sbt.maven.MavenBuild // Sorry for the long package name :-(
+For example, if your `pom.xml` contains the following modules:
 
-object MyBuild extends MavenBuild {
-	// "*" is a selector which selects all modules
-	project("*")(
-		// Note that these properties like compile source, target, encoding 
-		// are treated as common properties. So set a pom.xml property 
-		// like "<maven.compiler.source>1.6</maven.compiler.source>" also works.
-		javacOptions ++= Seq("-source", "1.6")
-	)
-
-	// Here "a" is a project id, which is set to the artifactId
-	// BUT! SBT doesn't allow "." in the id, so the "." is replaced with "_"
-	project("a") (
-		// Project specific settings here
-	)
-
-	// Note that you can select multiple(but not all) modules using the "|" operator
-	project("b" | "c") (
-		assemblySettings ++ Seq(
-      		test in assembly := {}
-      	)
-	:_*) // Finally convert it to a Setting[_]*
-}
 ```
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <!-- ... -->
+  <modules>
+    <module>super-duper-core</module>
+    <module>super-duper-app</module>
+  </modules>
+  <!-- ... -->
+```
+
+Also, say `super-duper-app` depends on `super duper-core`.
+
+
+Multi-module projects can be accessed in `build.sbt`. If you wish to use all of the settings, vanilla, simply declare them as follows:
+
+```
+lazy val `super-duper-app` = pom.modules("super-duper-app").project.
+  setting() // additional settings can go here
+
+/* `super-duper-app` project will be automatically configured to depend on an
+   sbt project with id `super-duper-core`; naming the following project as
+   follows fulfills this dependency, which will otherwise result in error */
+
+lazy val `super-duper-core` = pom.modules("super-duper-core").project
+```
+
+`pom.modules("super-duper-app")` returns a Pom class. If you need to further customize the project configuration, `projectSettings` and `dependencies` are available methods on the Pom class. `dependencies.list` returns a `List[PomDependency]`, and `PomDependency` has a method `.toDependency` which returns an SBT dependency. For further help, post an issue, or read the source.
 
 Features
 --------
@@ -116,3 +120,5 @@ Licensed under _Apache License, Version 2.0_. You may obtain a copy of the licen
 [http://www.apache.org/licenses/LICENSE-2.0]()
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+
+This project has been forked from https://github.com/shivawu/sbt-maven-plugin by Tim Harper (https://github.com/timcharper), because it was abandoned.

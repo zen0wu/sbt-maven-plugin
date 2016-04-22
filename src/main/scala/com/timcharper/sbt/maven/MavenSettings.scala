@@ -1,4 +1,4 @@
-package com.github.shivawu.sbt.maven
+package com.timcharper.sbt.maven
 
 import java.io.File
 import xml._

@@ -1,7 +1,7 @@
-package com.github.shivawu.sbt.maven.property
+package com.timcharper.sbt.maven
+package property
 
 import scala.xml._
-import com.github.shivawu.sbt.maven.MavenSettings
 import sbt._
 
 class PomProperty(

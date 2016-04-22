@@ -1,4 +1,4 @@
-package com.github.shivawu.sbt.maven
+package com.timcharper.sbt.maven
 
 import sbt._
 import Keys._
@@ -21,5 +21,5 @@ trait PomBuild extends Build {
 
   lazy val root = pom.project
 
-  override def projects = root :: pom.allModules
+  override def projects = root :: pom.allModuleProjects
 }

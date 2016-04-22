@@ -1,4 +1,4 @@
-package com.github.shivawu.sbt.maven.property
+package com.timcharper.sbt.maven.property
 
 object ResolveUtil {
   private val KeyPattern = """\$\{([A-z0-9\.-]+)\}""".r

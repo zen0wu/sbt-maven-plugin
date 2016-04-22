@@ -1,4 +1,4 @@
-package com.github.shivawu.sbt.maven
+package com.timcharper.sbt.maven
 
 import java.io.File
 import xml._
@@ -121,14 +121,24 @@ class Pom private (val pomFile: File) { self =>
     xml \ "scm"
 
   // Scala version
-  lazy val scalaVer: Option[String] = dependencies.lookup(Common.scalaLibrary).map(_.version)
+  lazy val scalaVer: Option[String] = dependencies.lookup(Common.scalaLibrary).flatMap(_.version)
 
-  // Modules
-  lazy val modules: List[File] = 
-    (xml \ "modules" \ "module").map { p: NodeSeq => new File(PathUtil.chdir(p.text, baseDir) + "/pom.xml") }.toList
+  // Files pointing to pom.xml
+  lazy val moduleFiles: Map[String, File] = 
+    (xml \ "modules" \ "module").map { p: NodeSeq => (p.text, new File(PathUtil.chdir(p.text, baseDir) + "/pom.xml")) }.toMap
 
-  // SBT Models
-  lazy val allModules: List[Project] = modules.map(p => Pom.apply(p)).flatMap(m => m.project :: m.allModules)
+  // Pom modules
+  lazy val modules: Map[String, Pom] =
+    moduleFiles.map { case (k, v) => (k, Pom(v)) }.toMap
+
+  // SBT Project Models for all included modules
+  lazy protected [maven] val allModuleProjects: List[Project] = modules.values.flatMap { m => m.project :: m.allModuleProjects }.toList
+
+  /**
+    Helper accessor because implicit magic causes awful errors when accessing project.settings
+    */
+  lazy val projectSettings: Seq[Setting[_]] =
+    project.settings
 
   lazy val project: Project = {
     ConsoleLogger().debug("Converting pom.xml to SBT project")
@@ -186,7 +196,7 @@ class Pom private (val pomFile: File) { self =>
       id = artifactId.replace(".", "_"),
       base = new File(baseDir)
     ).settings(metadata: _*)
-    val withSubprojs = (bare /: allModules) (_ aggregate _)
+    val withSubprojs = (bare /: allModuleProjects) (_ aggregate _)
     val withInterDeps = (withSubprojs /: indeps) (_ dependsOn _)
     withInterDeps.settings(
       libraryDependencies ++= exdeps map (_.toDependency),
@@ -203,8 +213,7 @@ class Pom private (val pomFile: File) { self =>
     require(name != "", "artifactId is empty")
 
     val fallback: Option[PomDependency] = parent flatMap { _.dependencyManagement.lookup(groupId, name) }
-    val version = getText(node \ "version").map(resolveProperty _).orElse(fallback.map(_.version))
-    require(version != None, "version is empty, even with parent's dependency management")
+    val version: Option[String] = getText(node \ "version").map(resolveProperty _).orElse(fallback.flatMap(_.version))
     val scope = getText(node \ "scope").map(resolveProperty _).orElse(fallback.flatMap(_.scope))
     val classifier = (node \ "classifier").map(_.text).toList
     val exclusions = (node \ "exclusions" \ "exclusion").map{ex =>
@@ -214,7 +223,7 @@ class Pom private (val pomFile: File) { self =>
       case exs => exs
     }
 
-    new PomDependency(groupId, name, version.get, scope, classifier, exclusions)
+    PomDependency(groupId, name, version, scope, classifier, exclusions)
   }
 
   private def resolveProperty(key: String) = {
